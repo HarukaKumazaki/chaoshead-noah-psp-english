@@ -8,6 +8,10 @@ This patch brings it home. It takes Committee of Zero's English translation and 
 Japanese PSP release, as close to 1:1 as the PSP allows: the same words, the same jokes, the same Tips,
 on the handheld the game was made for.
 
+> **Translation source:** all of the English in this patch comes from
+> [Committee of Zero](https://sonome.dareno.me/)'s CHAOS;HEAD NOAH patch (version 1.1.3, for the Steam
+> release). This project only ports their work to the PSP; the translation is theirs.
+
 > **What you need:** your own copy of the Japanese PSP game (ULJM05692) as an `.iso`. No game files are
 > included here; the patcher only works on the original, unmodified ISO.
 
@@ -96,11 +100,20 @@ to rebuild everything yourself from the Japanese ISO and a Steam copy of the gam
 | `tools/test/` | helpers that drive PPSSPP for automated testing |
 | `patcher/` | the Windows and Linux patchers, and the scripts that make a release |
 
+## Thank you, Committee of Zero
+
+None of this would exist without **[Committee of Zero](https://sonome.dareno.me/)**. They translated
+CHAOS;HEAD NOAH, edited it, redrew its artwork in English, and subtitled and typeset every song and video.
+This patch is simply their work, carried over to the PSP. Every line of story, every Tip, every translated
+picture and subtitle here is theirs.
+
+If you enjoy this patch, thank them, and go play their other patches for the Science Adventure series.
+
 ## Credits
 
-- **Committee of Zero** for the English translation, artwork and subtitles this whole thing is built on
-  (<https://sonome.dareno.me/>). Go play their patches.
-- **5pb. and Nitroplus** for the original game, and **MAGES. / Spike Chunsoft** for the PC release.
+- **Translation, editing, artwork and subtitles:** Committee of Zero (CHAOS;HEAD NOAH patch 1.1.3)
+- **Original game:** 5pb. and Nitroplus; PC release by MAGES. / Spike Chunsoft
+- **PSP port:** HarukaKumazaki (this repo)
 
 This is a free, non-commercial fan project. It isn't affiliated with or endorsed by the rights holders or
 by Committee of Zero. If you enjoy it, please support the official releases.
