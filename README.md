@@ -2,12 +2,12 @@
 
 **CHAOS;HEAD NOAH** came out on the PSP in 2010, but only in Japanese. Since no one ever finished porting it i did it.
 
-This patch takes Committee of Zero's English translation and puts it into the original
+This patch takes Committee of Zero's English translation + Official PC translation and puts it into the original
 Japanese PSP release, as close to 1:1 as the PSP allows: the same words, the same jokes, the same Tips.
 
 > **Translation source:** all of the English in this patch comes from
 > [Committee of Zero](https://sonome.dareno.me/)'s CHAOS;HEAD NOAH patch (version 1.1.3, for the Steam
-> release). This project only ports their work to the PSP; the some of the translation is theirs.
+> release) & The Official Steam translation. Some of the translation is made by me because PsP had some small differences in some parts of the UI.
 
 > **What you need:** your own copy of the Japanese PSP game (ULJM05692) as an `.iso`. No game files are
 > included here; the patcher only works on the original, unmodified ISO.
@@ -24,14 +24,14 @@ running into Japanese text.
 
 | Part of the game | Status | Where the English comes from |
 |---|---|---|
-| Story (all routes, all 9 endings) | 25,988 / 25,988 lines | Committee of Zero, word for word |
-| Choices and delusion triggers | complete | Committee of Zero |
-| Character names, chapter titles | complete | Committee of Zero |
-| Tips glossary | 146 / 146 entries | Committee of Zero |
+| Story (all routes, all 9 endings) | 25,988 / 25,988 lines | Committee of Zero/Official, word for word |
+| Choices and delusion triggers | complete | Committee of Zero/Official |
+| Character names, chapter titles | complete | Committee of Zero/Official |
+| Tips glossary | 146 / 146 entries | Committee of Zero/Official |
 | Highlighted Tips words in the story | 113 / 113 | placed on the same words CoZ highlights |
 | Menus, config, save/load, backlog | complete | CoZ's terms; PSP-only screens written for this port |
 | Pictures with text (chat logs, forums, screens, signs) | complete | CoZ's translated artwork |
-| Full-screen text pages (prologue, late chapters) | 75 pages | Committee of Zero |
+| Full-screen text pages (prologue, late chapters) | 75 pages | Committee of Zero/Official |
 | Movies (opening, endings, story videos) | 19 videos | CoZ's English videos and subtitles |
 | Music Gallery (46 songs) | titles, credits and lyrics | CoZ's song subtitles; a few extra verses translated here |
 | Extras (Clear List, CG Gallery, Music Gallery, Tips) | complete | |
