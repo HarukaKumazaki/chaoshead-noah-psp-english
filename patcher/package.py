@@ -10,7 +10,7 @@ import sys, os, shutil, zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, 'dist')
 PATCHERS = ['Patch-Windows.bat', 'patcher.ps1', 'patch-linux.sh']
-PATCH = ['ChaosHeadNoah_PSP_EN.patch.bin', 'ChaosHeadNoah_PSP_EN.patch.txt']
+PATCH = ['ChaosHeadNoah_PSP_EN.dat']
 
 
 def copy(src, dst):

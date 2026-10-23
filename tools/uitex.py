@@ -311,6 +311,89 @@ def help_screen(img):
     return img
 
 
+# ---------------------------------------------------------------- title logo tagline
+COZ_TITLE = os.path.join(ROOT, 'steam', 'c0data', 'titlemenu2.png')
+TAG_PSP = (40, 82)            # tagline rows in OBJ_TT #3/#4 (240x84; the logo is above row 39)
+TAG_COZ = (2100 + 226, 2100 + 402, 0, 935)   # CoZ's rewritten tagline block in titlemenu2.png
+
+
+def title_tagline(glow):
+    """CoZ rewrote the tagline under the logo; put theirs in place of the old official English.
+    glow: OBJ_TT #4 (CoZ's glowing pixels); plain: OBJ_TT #3 (CoZ's text in the plain white)"""
+    def fix(img):
+        import numpy as np
+        img = img.convert('RGBA').copy()
+        y0, y1, x0, x1 = TAG_COZ
+        tag = Image.open(COZ_TITLE).convert('RGBA').crop((x0, y0, x1, y1))
+        a = np.asarray(tag)[:, :, 3]
+        cols = np.nonzero((a > 60).any(0))[0]
+        tag = tag.crop((max(0, cols.min() - 6), 0, min(tag.width, cols.max() + 7), tag.height))
+        h = TAG_PSP[1] - TAG_PSP[0]
+        w = round(tag.width * h / tag.height)
+        tag = tag.resize((w, h), Image.LANCZOS)
+        if not glow:                                   # plain: the bright core only, in the old text colour
+            arr = np.asarray(tag).astype(float)
+            core = np.clip((arr[:, :, 3] - 90) * 2.2, 0, 255).astype(np.uint8)
+            tag = Image.new('RGBA', tag.size, (235, 235, 235, 255))
+            tag.putalpha(Image.fromarray(core))
+        clear = Image.new('RGBA', (img.width, h), (0, 0, 0, 0))
+        img.paste(clear, (0, TAG_PSP[0]))
+        img.alpha_composite(tag, ((img.width - w) // 2, TAG_PSP[0]))
+        return img
+    return fix
+
+
+def icon0():
+    """PSP_GAME/ICON0.PNG (144x80, the XMB icon): the old tagline under the logo replaced by CoZ's.
+    The old text is filled from the surrounding background, then CoZ's lines are set in the original's
+    plain white. Written to work/psp_game/ (build.py puts it in the ISO; it must not
+    grow past the original file, so the ISO keeps its size)."""
+    src = os.path.join(ROOT, 'iso', 'PSP_GAME', 'ICON0.PNG')
+    img = Image.open(src).convert('RGB')
+    a = np.asarray(img).astype(float)
+    y0, y1, x0, x1 = 44, 71, 24, 122                     # tagline box
+    box = a[y0:y1, x0:x1]
+    mask = box.min(2) > 150                               # the old white text
+    m = np.zeros_like(mask)                               # grow by one pixel (anti-aliasing)
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            m |= np.roll(np.roll(mask, dy, 0), dx, 1)
+    out = box.copy()
+    known = ~m
+    for _ in range(12):                                   # fill from known neighbours, outside in
+        if known.all():
+            break
+        acc = np.zeros_like(out); cnt = np.zeros(m.shape)
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                k = np.roll(np.roll(known, dy, 0), dx, 1)
+                acc += np.roll(np.roll(out, dy, 0), dx, 1) * k[..., None]; cnt += k
+        new = (cnt > 0) & ~known
+        out[new] = acc[new] / cnt[new][:, None]
+        known |= new
+    a[y0:y1, x0:x1] = out
+    img = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+    y_0, y_1, cx0, cx1 = TAG_COZ
+    tag = Image.open(COZ_TITLE).convert('RGBA').crop((cx0, y_0, cx1, y_1))
+    al = np.asarray(tag)[:, :, 3]
+    cols = np.nonzero((al > 60).any(0))[0]
+    tag = tag.crop((cols.min(), 0, cols.max() + 1, tag.height))
+    h = y1 - y0 - 2
+    w = min(x1 - x0, round(tag.width * h / tag.height))
+    tag = tag.resize((w, h), Image.LANCZOS)
+    core = np.clip((np.asarray(tag)[:, :, 3].astype(float) - 90) * 2.2, 0, 255).astype(np.uint8)
+    text = Image.new('RGBA', tag.size, (255, 255, 255, 255)); text.putalpha(Image.fromarray(core))
+    px = (img.width - w) // 2
+    img.alpha_composite(text, (px, y0 + 1))
+    od = os.path.join(ROOT, 'work', 'psp_game'); os.makedirs(od, exist_ok=True)
+    dst = os.path.join(od, 'ICON0.PNG')
+    img.convert('RGB').save(dst, optimize=True)
+    if os.path.getsize(dst) > os.path.getsize(src):
+        img.convert('RGB').quantize(256).save(dst, optimize=True)
+    assert os.path.getsize(dst) <= os.path.getsize(src), 'ICON0.PNG grew'
+    return dst
+
+
 def main():
     ov = os.path.join(sys.argv[1], 'DATA0', 'OBJSY.AFS.d')
     os.makedirs(ov, exist_ok=True)
@@ -318,8 +401,42 @@ def main():
              for n in ('AB', 'CL', 'CM', 'HE', 'LG', 'MA', 'MU', 'MV', 'PR', 'SC', 'TT', 'WI')}
     new = {}
 
-    def put(pref, i, img, info):
-        new.setdefault(pref, {})[i] = p2t.tim2_raw(img, info)
+    def put(pref, i, img, info, keep_palette=False):
+        if keep_palette:      # hand-tuned CLUT (title logo): map onto it; pixels whose colour did not
+            # change keep their original palette index (slots 0 and 255 hold the same values, and the
+            # logo's white fill must stay 255 or the game draws only its outlines)
+            import tim2, numpy as np
+            raw = bytearray(tim2._write_fixed_palette(img, info)[len(info['header']):])
+            orig_raw = p2t.raw(files[pref], p2t.entries(files[pref])[i])
+            # the game recolours palette slots at runtime (the logo fill is slot 255, transparent in the
+            # file), apparently chosen by use: only use slots the original tagline used, and the
+            # original's background slot for transparent pixels, so the slot counts stay as they were
+            n0 = info['w'] * info['h']
+            y0 = info['w'] * TAG_PSP[0]
+            used = sorted(set(orig_raw[y0:n0]))
+            bg = max(used, key=lambda k: orig_raw[y0:n0].count(k))
+            clut = info['clut']
+            pal = tim2._csm1([tuple(clut[k * 4:k * 4 + 4]) for k in range(len(clut) // 4)])
+            P = np.array([(r, g, b_, min(255, a_ * 2)) for r, g, b_, a_ in pal], int)[used]
+            A = np.asarray(img.convert('RGBA'), int).reshape(-1, 4)
+            for k in range(y0, n0):
+                if A[k, 3] == 0:
+                    raw[k] = bg
+                else:
+                    d = ((P[:, :3] - A[k, :3]) ** 2).sum(1) + 4 * (P[:, 3] - A[k, 3]) ** 2
+                    raw[k] = used[int(d.argmin())]
+            orig_img = np.asarray(p2t.image(files[pref], p2t.entries(files[pref])[i])[0].convert('RGBA'))
+            same = (np.asarray(img.convert('RGBA')) == orig_img).all(2).reshape(-1)
+            n = info['w'] * info['h']
+            for k in np.nonzero(same[:n])[0]:
+                raw[k] = orig_raw[k]
+            e = p2t.entries(files[pref])[i]
+            orig_blob = files[pref][e['off']:e['off'] + e['size']]
+            keep = info['w'] * TAG_PSP[0]                 # rows above the tagline are unchanged
+            import p2tlz
+            new.setdefault(pref, {})[i] = ('blob', p2tlz.compress_keep_prefix(orig_blob, bytes(raw), keep))
+        else:
+            new.setdefault(pref, {})[i] = p2t.tim2_raw(img, info)
 
     b = files['LG']; e = p2t.entries(b)[3]
     put('LG', 3, caution(), p2t.image(b, e)[1])
@@ -328,10 +445,14 @@ def main():
             put(pref, i, img, info)
     for pref, i, fn in (('CM', 2, voice_list), ('MV', 2, song_thumbs), ('SC', 58, staff_name),
                         ('HE', 2, help_screen), ('SC', 39, help_screen)):
+        # OBJ_TT #3/#4 (title logo) are left as they are: the game recolours that texture's palette at
+        # runtime, and any change to its tagline rows makes the logo draw as outlines (title_tagline()
+        # kept for reference). The title shows the original official English tagline.
         img, info = p2t.image(files[pref], p2t.entries(files[pref])[i])
-        put(pref, i, fn(img), info)
+        put(pref, i, fn(img), info, keep_palette=(pref == 'TT'))
     for pref, d in new.items():
         open(os.path.join(ov, 'OBJ_%s.P2T' % pref), 'wb').write(p2t.rebuild(files[pref], d))
+    icon0()
     print('UI textures translated:', sum(len(d) for d in new.values()), 'in', len(new), 'P2T files')
 
 

@@ -75,3 +75,56 @@ def compress(data):
             i += step
         out[flagpos] = flags
     return bytes(out)
+
+
+def _tokens(blob):
+    """original stream -> [(out_index, 'lit', byte) | (out_index, 'ref', b0, b1, length)]"""
+    n = struct.unpack_from('<I', blob)[0]
+    src = blob[4:]; i = 0; flags = 0; outn = 0; toks = []
+    while outn < n and i < len(src):
+        flags >>= 1
+        if not flags & 0x100:
+            flags = src[i] | 0xff00; i += 1
+        if flags & 1:
+            toks.append((outn, 'lit', src[i])); i += 1; outn += 1
+        else:
+            a, b = src[i], src[i + 1]; i += 2
+            L = (b & 0xf) + 3
+            toks.append((outn, 'ref', a, b, L)); outn += L
+    return toks
+
+
+def compress_keep_prefix(orig_blob, data, keep):
+    """encode data, reusing orig_blob's own tokens for the first `keep` bytes (which must be identical
+    in both). The game's decoder handles the original encoder's streams; this keeps unchanged
+    regions byte-for-byte in the original encoding and only re-encodes the rest."""
+    toks = []
+    for t in _tokens(orig_blob):
+        end = t[0] + (1 if t[1] == 'lit' else t[4])
+        if end > keep:
+            break
+        toks.append(t)
+    start = toks[-1][0] + (1 if toks[-1][1] == 'lit' else toks[-1][4]) if toks else 0
+    rest = compress(data)                                  # tokens for the whole new data
+    for t in _tokens(rest):
+        if t[0] >= start:
+            if t[0] != start:                              # resync: literals up to the next token
+                pass
+            break
+    # re-encode the remainder from `start` with literals until it aligns with a token of `rest`
+    new_toks = [t for t in _tokens(rest) if t[0] >= start]
+    first = new_toks[0][0] if new_toks else len(data)
+    toks += [(k, 'lit', data[k]) for k in range(start, first)]
+    toks += new_toks
+    out = bytearray(struct.pack('<I', len(data)))
+    for g in range(0, len(toks), 8):
+        grp = toks[g:g + 8]
+        flags = 0; body = bytearray()
+        for bit, t in enumerate(grp):
+            if t[1] == 'lit':
+                flags |= 1 << bit; body.append(t[2])
+            else:
+                body += bytes((t[2], t[3]))
+        out.append(flags); out += body
+    assert decompress(bytes(out)) == bytes(data), 'spliced stream does not decode'
+    return bytes(out)

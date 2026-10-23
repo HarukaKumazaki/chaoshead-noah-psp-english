@@ -34,17 +34,27 @@ def rebuild(b, new_raw):
     """new_raw: {index: raw TIM2 data bytes (pixels+clut)} -> new P2T bytes (blobs stored LZSS)"""
     tab, n, base = struct.unpack_from('<III', b, 8)
     es = entries(b)
+    # a value may be a ready LZSS blob: ('blob', bytes) (see p2tlz.compress_keep_prefix)
+    blobs_new = {i: (r[1] if isinstance(r, tuple) else p2tlz.compress(r)) for i, r in new_raw.items()}
+    if all(len(blobs_new[i]) <= es[i]['size'] for i in blobs_new):
+        # every new blob fits its old slot: keep the original layout and file size exactly
+        out = bytearray(b)
+        for i, blob in blobs_new.items():
+            e = es[i]
+            out[e['off']:e['off'] + e['size']] = blob + bytes(e['size'] - len(blob))
+            struct.pack_into('<III', out, tab + 0x40 * i + 0x34, e['off'] - base, 1, len(blob))
+        return bytes(out)
     out = bytearray(b[:base])
     blobs = bytearray()
     for i, e in enumerate(es):
         if i in new_raw:
-            blob = p2tlz.compress(new_raw[i]); flag = 1
+            blob = blobs_new[i]; flag = 1
         else:
             blob = b[e['off']:e['off'] + e['size']]; flag = e['flag']
         off = len(blobs)
         struct.pack_into('<III', out, tab + 0x40 * i + 0x34, off, flag, len(blob))
         blobs += blob
-        blobs += bytes(-len(blobs) % 16)
+        blobs += bytes(-len(blobs) % 32)       # the originals align every blob to 32 bytes
     out += blobs
     out += bytes(-len(out) % 0x800 if len(b) % 0x800 == 0 else 0)
     return bytes(out)

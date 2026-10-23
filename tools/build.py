@@ -57,6 +57,10 @@ def main():
             repl.append('PSP_GAME/USRDIR/%s.AFS=%s' % (a, dst))
     for f in os.listdir(os.path.join(ROOT, 'work', 'usrdir')):
         repl.append('PSP_GAME/USRDIR/%s=%s' % (f, os.path.join(ROOT, 'work', 'usrdir', f)))
+    gamedir = os.path.join(ROOT, 'work', 'psp_game')       # uitex.py output (ICON0.PNG)
+    if os.path.isdir(gamedir):
+        for f in os.listdir(gamedir):
+            repl.append('PSP_GAME/%s=%s' % (f, os.path.join(gamedir, f)))
     movdir = os.path.join(ROOT, 'work', 'ov_mov')          # movies.py output (English movies)
     if os.path.isdir(movdir):
         for f in sorted(os.listdir(movdir)):
