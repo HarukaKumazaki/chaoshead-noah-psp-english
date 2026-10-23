@@ -102,6 +102,23 @@ def convert(src_klz, coz_path, page_of=None):
     return klz.compress(tim2.write(new, info)), 'ok'
 
 
+def tall_part(src_klz, coz_path, k, n):
+    """part k of n: the English page scaled to the PSP width (no squashing), parts spread evenly from
+    the top to the bottom so every line is shown (consecutive parts may overlap)"""
+    psp, info = tim2.read(klz.decompress(open(src_klz, 'rb').read()))
+    w, h = info['w'], info['h']
+    coz = Image.open(coz_path).convert('RGBA')
+    tall = coz.resize((w, round(coz.height * w / coz.width)), Image.LANCZOS)
+    if tall.height <= h:
+        new = psp.convert('RGBA').copy(); new.paste(tall, (0, 0))
+    else:
+        dy = 0 if n == 1 else round(k * (tall.height - h) / (n - 1))
+        new = tall.crop((0, dy, w, dy + h))
+    if psp.getextrema()[3][0] < 255:
+        new.putalpha(psp.getchannel('A'))
+    return klz.compress(tim2.write(new, info))
+
+
 CHAPTER_CARDS = {
     '01': ('Chapter 1', 'Eyes in Eyes'), '02': ('Chapter 2', 'Click Me'), '03': ('Chapter 3', 'Shogun'),
     '04': ('Chapter 4', 'DI-sword'), '05': ('Chapter 5', 'Delusion'), '06': ('Chapter 6', 'Noah'),
@@ -118,19 +135,19 @@ SERIF = os.path.join(r'C:\program files (x86)\steam\steamapps\common\CHAOS;HEAD 
 def chapter_card(label, title, w=480, h=360):
     """white serif text with a soft glow, centred on black like the original cards (text band y≈172-187)"""
     from PIL import ImageDraw, ImageFont, ImageFilter
-    small = ImageFont.truetype(SERIF, 11)
-    big = ImageFont.truetype(SERIF, 16)
+    small = ImageFont.truetype(SERIF, 12)
+    big = ImageFont.truetype(SERIF, 17)
     t2 = '[%s]' % title
     gap = 14
     w1, w2 = small.getlength(label), big.getlength(t2)
     if w1 + gap + w2 > w - 20:          # long route titles: shrink the title
-        big = ImageFont.truetype(SERIF, 13); w2 = big.getlength(t2)
+        big = ImageFont.truetype(SERIF, 14); w2 = big.getlength(t2)
     x = (w - (w1 + gap + w2)) / 2
     base = 184
     txt = Image.new('L', (w, h), 0)
     d = ImageDraw.Draw(txt)
-    d.text((x, base), label, font=small, fill=255, anchor='ls', stroke_width=0)
-    d.text((x + w1 + gap, base), t2, font=big, fill=255, anchor='ls')
+    d.text((x, base), label, font=small, fill=255, anchor='ls', stroke_width=1, stroke_fill=255)    # bold like the original
+    d.text((x + w1 + gap, base), t2, font=big, fill=255, anchor='ls', stroke_width=1, stroke_fill=255)
     glow = txt.filter(ImageFilter.GaussianBlur(2)).point(lambda v: min(255, v * 2))
     out = Image.new('RGBA', (w, h), (0, 0, 0, 255))
     out.paste((140, 140, 140, 255), (0, 0), glow)
@@ -152,6 +169,22 @@ def main():
                 continue
             n = f[:-4].lower()
             page = None
+            m_tall = re.fullmatch(r'(bg\d+_\d+_\d)([abc])', n)
+            if m_tall and m_tall.group(1) in coz:
+                # one tall PC page shown on the PSP as scroll parts A/B/C: cut each part from CoZ's tall
+                # English page at the scroll position that matches the Japanese part's layout
+                parts = sorted(x[:-4].lower()[-1] for x in os.listdir(d)
+                               if re.fullmatch(re.escape(m_tall.group(1)) + r'[abc]\.klz', x.lower()))
+                data = tall_part(os.path.join(d, f), coz[m_tall.group(1)], parts.index(m_tall.group(2)), len(parts))
+                od = os.path.join(ov, arch, sub); os.makedirs(od, exist_ok=True)
+                open(os.path.join(od, f), 'wb').write(data); done += 1
+                continue
+            if n == 'bg042_04_2' and 'bg042_01_2' in coz:     # portrait view of Shogun's link list
+                psp, info = tim2.read(klz.decompress(open(os.path.join(d, f), 'rb').read()))
+                new = Image.open(coz['bg042_01_2']).convert('RGBA').resize((info['w'], info['h']), Image.LANCZOS)
+                od = os.path.join(ov, arch, sub); os.makedirs(od, exist_ok=True)
+                open(os.path.join(od, f), 'wb').write(klz.compress(tim2.write(new, info))); done += 1
+                continue
             if n in coz:
                 src = coz[n]
             elif f[:-4] in official:

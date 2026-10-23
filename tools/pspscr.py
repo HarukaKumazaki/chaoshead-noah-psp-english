@@ -7,14 +7,32 @@ followed by a NUL-separated Shift-JIS string pool. Opcode 0x18 displays a line:
 import struct
 
 
-def instructions(b, start, end):
+def _ok(b, p, end):
+    return p + 1 < end and b[p + 1] and not b[p + 1] & 1 and p + b[p + 1] <= end
+
+
+def instructions(b, start, end, resync=True):
+    """walk [op][len] instructions. Some scenes keep data tables inside the code (the walk used to
+    stop there and miss every line after them): on an invalid instruction, resynchronise at the next
+    even position from which RUN valid instructions follow."""
+    RUN = 6
     p = start
     while p < end:
-        op, ln = b[p], b[p + 1]
-        if ln == 0 or ln & 1 or p + ln > end:
+        if _ok(b, p, end):
+            yield p, b[p], b[p + 1]
+            p += b[p + 1]
+            continue
+        if not resync:
             return
-        yield p, op, ln
-        p += ln
+        q = p + 2
+        while q < end:
+            r, k = q, 0
+            while k < RUN and _ok(b, r, end):
+                r += b[r + 1]; k += 1
+            if k == RUN:
+                break
+            q += 2
+        p = q
 
 
 class Script:
@@ -38,6 +56,7 @@ class Script:
             if v < len(b) and (0x81 <= b[v] <= 0x9F or 0xE0 <= b[v] <= 0xEF):
                 offs.add(v)
         self.pool_start = min(offs) if offs else len(b)
+        self.texts = [t for t in self.texts if t[0] < self.pool_start]   # resync may run into the pool
         self.pool_end = len(b)
         self.refs = self._find_refs()
         # everything after the last referenced string is trailer data: keep it byte-for-byte
@@ -49,8 +68,12 @@ class Script:
     def _walk(self):
         b = self.b
         entry = struct.unpack_from('<I', b, 0)[0]
+        seen = set()
         for start in (0x20, entry):
             for p, op, ln in instructions(b, start, len(b)):
+                if p in seen:
+                    continue
+                seen.add(p)
                 yield p, op, ln
 
     def strings(self):

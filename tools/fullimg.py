@@ -50,12 +50,12 @@ def card(path, text, style):
         ys, xs = np.nonzero(al > 0)
     d = ImageDraw.Draw(out)
     if style == 'dark':
-        f = ImageFont.truetype(FONT, 14)
+        f = ImageFont.truetype(FONT, 16)          # same size as the dialogue font (mkfont.py)
         rows = wrap(text, f, 440)
         cy = (ys.min() + ys.max()) / 2 if len(ys) else 136
-        y0 = cy - (len(rows) - 1) * 9
+        y0 = cy - (len(rows) - 1) * 10
         for k, r in enumerate(rows):
-            d.text((240, y0 + k * 18), r, font=f, fill=(255, 255, 255, 255), anchor='mm')
+            d.text((240, y0 + k * 20), r, font=f, fill=(255, 255, 255, 255), anchor='mm')
     else:
         f = ImageFont.truetype(FONT, 16)
         rows = wrap(text, f, 450)

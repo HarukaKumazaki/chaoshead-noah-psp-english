@@ -61,13 +61,13 @@ TR = {
     '日': 'Sun', '月': 'Mon', '火': 'Tue', '水': 'Wed', '木': 'Thu', '金': 'Fri', '土': 'Sat',
     '%d月%d日（%s）': '%d/%d (%s)', '%d月%d日': '%d/%d',
     'Ｓａｖｅ': 'Save', 'Ｌｏａｄ': 'Load', 'Ｑｕｉｃｋ Ｓａｖｅ': 'Quick Save', 'Ｑｕｉｃｋ Ｌｏａｄ': 'Quick Load',
-    'Ｔｉｐｓ': 'Tips', 'Ｃｏｎｆｉｇ': 'Config', 'Ｈｅｌｐ': 'Help', 'Ｒｅｔｕｒｎ Ｔｉｔｌｅ': 'Return to Title',
+    'Ｔｉｐｓ': 'Tips', 'Ｃｏｎｆｉｇ': 'Config', 'Ｈｅｌｐ': 'Help', 'Ｒｅｔｕｒｎ Ｔｉｔｌｅ': 'Title Menu',
     'Ｅｘｉｔ': 'Exit', 'Ｒｅｓｔａｒｔ': 'Restart',
     'ゲームを終了して、タイトル画面に戻りますか？': 'Quit the game and return to the title screen?',
     'ゲームを終了して、クリアリスト画面に戻りますか？': 'Quit the game and return to the Clear List?',
     '：': ':',
     'シーンタイトル': 'Scene Title', 'トータル既読率': 'Total Read Rate', 'シーン既読率': 'Scene Read Rate',
-    '現プレイ時間': 'Current Play Time',
+    '現プレイ時間': 'Session Time',
     # config descriptions
     'コントローラのタイプを設定します。タイプ１はＬの季節風%Nの設定、タイプ２は通常ノベルタイプの設定です。%N○ボタンで操作マニュアルが参照できます。':
         'Sets the controller type. Type 1 uses the “L no%NKisetsu” layout; Type 2 is a standard visual novel%Nlayout. Press ○ to view the controls manual.',

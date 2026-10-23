@@ -90,6 +90,10 @@ Remaining / notes
       window header (Reload / Enter / Users (n)) relabelled in place; lone-line pages handled
 - [x] ESO logs: one font size (12 px) for every log
 - [x] Mid-row click pauses removed (%K only at row ends): they stalled force-skip (R) until START
+- [x] Script parser resynchronises past data tables inside the code: 6,300+ lines in 43 scenes were
+      being skipped (medical exam, many delusion branches); now 32,631 lines, all matched to CoZ
+- [x] Tall CoZ web pages cut into the PSP's scroll parts; YES/NO swimsuit pattern, questionnaire end page,
+      Shogun's link list in English; dark full-screen cards and chapter cards at dialogue-size, bold
 - [ ] Final playtest on hardware
 - Ending credits come from CoZ's videos, i.e. the PC/Switch release credits (as in CoZ).
 

@@ -7,7 +7,7 @@ Base: Committee of Zero's CHAOS;HEAD NOAH patch 1.1.3 (Steam), ported to the Jap
 
 | Part | Translated | English source |
 |---|---|---|
-| Story script (all routes, all 9 endings) | 25,988 / 25,988 lines (100%) | CoZ, word for word |
+| Story script (all routes, all 9 endings) | 32,631 / 32,631 lines (100%) | CoZ, word for word |
 | Choices and delusion triggers | all | CoZ |
 | Speaker names | 225 / 225 | CoZ |
 | Chapter titles, chapter-jump menu | 33 / 33 | CoZ |
@@ -24,7 +24,7 @@ Base: Committee of Zero's CHAOS;HEAD NOAH patch 1.1.3 (Steam), ported to the Jap
 
 ## Story script in detail
 
-How each of the 25,988 PSP script lines got its English:
+How each of the 32,631 PSP script lines got its English:
 
 | Method | Lines | Meaning |
 |---|---|---|

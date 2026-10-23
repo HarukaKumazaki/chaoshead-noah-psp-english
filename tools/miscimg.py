@@ -42,12 +42,20 @@ def fit_font(text, width, size):
         size -= 1
 
 
-def karte(path, questions):
+def has_box(img, a, b):
+    """a question row starts with a check box: dark pixels in the first 40 columns"""
+    return sum(1 for x in range(0, 40) for y in range(a, b + 1) if sum(img.getpixel((x, y))[:3]) < 300) > 6
+
+
+def karte(path, questions, first=0, header=80):
+    """first: index of the question in the first check-box row (BG_KARTE1B is the list scrolled to
+    the end); rows without a check box (header, OK / CANCEL) are left alone"""
     orig, info = tim2.read(klz.decompress(open(path, 'rb').read()))
     img = orig.convert('RGBA').copy()
     d = ImageDraw.Draw(img)
-    rows = [r for r in text_rows(img, 40, 300) if r[0] > 80]      # question rows below the header
+    rows = [r for r in text_rows(img, 40, 300) if r[0] > header and has_box(img, *r)]
     for k, (a, b) in enumerate(rows):
+        k += first
         if k >= len(questions):
             break
         ink = img.getpixel((60, (a + b) // 2))
@@ -75,13 +83,14 @@ def main():
     os.makedirs(ov, exist_ok=True)
     qs = en_lines('sch02_033', lambda t: True)
     n = 0
-    for f in ('BG_KARTE1.KLZ', 'BG_KARTE1A.KLZ', 'BG_KARTE1B.KLZ'):
-        open(os.path.join(ov, f), 'wb').write(karte(os.path.join(BGL, f), qs)); n += 1
+    for f, first, header in (('BG_KARTE1.KLZ', 0, 80), ('BG_KARTE1A.KLZ', 0, 80), ('BG_KARTE1B.KLZ', 14, -1)):
+        open(os.path.join(ov, f), 'wb').write(karte(os.path.join(BGL, f), qs[:25], first, header)); n += 1
     eso = en_lines('sch02_043', lambda t: '＞' in t[:10])
     for k, f in enumerate(sorted(x for x in os.listdir(BGL) if re.fullmatch(r'MMO_D02_043[A-H]\.KLZ', x))):
         if k < len(eso):
             texts = [eso[j] for j in range(k, max(-1, k - 3), -1)]
             open(os.path.join(ov, f), 'wb').write(mmo_stack(os.path.join(BGL, f), texts)); n += 1
+    open(os.path.join(ov, 'YN_BACK1.KLZ'), 'wb').write(yn_back(os.path.join(BGL, 'YN_BACK1.KLZ'))); n += 1
     n += ensu_all(ov)
     print('misc images typeset:', n, '| ESO lines', len(eso), '| questions', len(qs))
 
@@ -141,6 +150,28 @@ def ensu_all(ov):
             open(os.path.join(ov, name + '.KLZ'), 'wb').write(ensu_name(p, quad)); n += 1
     return n
 
+
+
+
+# YES/NO swimsuit choice: background pattern (YN_BACK1, 256x256 white text on transparency, 16 rows of
+# 16 px). CoZ's English pattern (eff_yesno_swim.png) uses three phrases; typeset in the PSP's style.
+YN_ROWS = ['Seira, You’re so Cute, Seira! Seira, You’re so Cute ★', 'School Swimsuit ★ School ★ School Swimsuit ★',
+           'I’ll put you to rest now. ★ Seira, You’re so Cute, Seira!', 'Seira, You’re so Cute, Seira!! I’ll put you to rest now.']
+
+
+def yn_back(path):
+    orig, info = tim2.read(klz.decompress(open(path, 'rb').read()))
+    img = Image.new('RGBA', orig.size, (255, 255, 255, 0))
+    d = ImageDraw.Draw(img)
+    f = ImageFont.truetype(FONT, 14)
+    order = [0, 1, 0, 2, 1, 0, 1, 3, 0, 1, 2, 0, 1, 0, 3, 1]
+    for r, k in enumerate(order):
+        x = -(r * 37 % 90)                                   # staggered like the original
+        while x < img.width:
+            d.text((x, 16 * r + 13), YN_ROWS[k], font=f, fill=(255, 255, 255, 255), anchor='ls',
+                   stroke_width=1, stroke_fill=(255, 255, 255, 255))
+            x += f.getlength(YN_ROWS[k]) + 10
+    return klz.compress(tim2.write(img, info))
 
 if __name__ == '__main__':
     main()
