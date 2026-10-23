@@ -17,6 +17,10 @@ and see [INSTALL.md](INSTALL.md) for the setup.
 
 ---
 
+JOIN THE DISCORD:
+
+https://discord.gg/YCwbn9fTD
+
 ## What you get
 
 Everything you read in the game is in English. You can play every route and see every ending without
