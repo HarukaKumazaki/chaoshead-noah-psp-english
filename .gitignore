@@ -1,0 +1,13 @@
+# game data and build outputs: copyrighted or large, never commit
+*.iso
+*.cso
+iso/
+unpacked/
+steam/
+work/
+release/
+dist/
+backup/
+tools/ffmpeg/
+tools/ppsspp/
+__pycache__/
