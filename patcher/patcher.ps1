@@ -28,7 +28,7 @@ if (-not $Iso) {
 if (-not (Test-Path -LiteralPath $Iso)) { Fail "File not found: $Iso" }
 $Iso = (Resolve-Path -LiteralPath $Iso).Path
 if (-not $Out) { $Out = Join-Path (Split-Path $Iso) 'Chaos;Head Noah (English).iso' }
-if ($Out -eq $Iso) { Fail 'The output must be a different file from the original ISO.' }
+if ($Out -eq $Iso) { $Out = Join-Path (Split-Path $Iso) 'Chaos;Head Noah (English, patched).iso' }   # any input name works
 if (-not (Test-Path -LiteralPath $Dat)) { Fail 'Keep this patcher next to ChaosHeadNoah_PSP_EN.dat.' }
 
 $info = @{}; $blocks = @()

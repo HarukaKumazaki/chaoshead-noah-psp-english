@@ -17,7 +17,7 @@ ISO=$1
 OUT=${2:-"$(dirname "$ISO")/Chaos;Head Noah (English).iso"}
 [ -f "$ISO" ] || fail "file not found: $ISO"
 [ -f "$DAT" ] || fail "keep this script next to ChaosHeadNoah_PSP_EN.dat"
-[ "$ISO" != "$OUT" ] || fail "the output must be a different file from the original ISO"
+[ "$ISO" != "$OUT" ] || OUT="$(dirname "$ISO")/Chaos;Head Noah (English, patched).iso"   # any input name works
 
 if command -v sha256sum >/dev/null 2>&1; then
     sha() { sha256sum "$1" | cut -d' ' -f1; }

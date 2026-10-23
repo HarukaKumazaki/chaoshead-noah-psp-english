@@ -1,6 +1,10 @@
 # Building the English ISO from source
 
-Players don't need any of this: use the release and [INSTALL.md](INSTALL.md).
+Players don't need any of this. To play, all you need is your Japanese ISO and the release zip: every
+asset the patch adds, videos included, is already packed in its `.dat` file (see [INSTALL.md](INSTALL.md)).
+
+Everything below (the Steam game with the Committee of Zero patch, Python, ffmpeg, PPSSPP) is only for
+compiling the patch from source and working on the project yourself.
 This page is for rebuilding the patch yourself or changing it.
 
 ## Requirements

@@ -2,15 +2,23 @@
 
 ## What you need
 
-- The **Japanese PSP ISO of CHAOS;HEAD NOAH** (ULJM05692), unmodified, as a `.iso` file
-  (1,416,232,960 bytes). If yours is a `.cso`, convert it back to `.iso` first.
-- About 1.5 GB of free disk space for the new English ISO.
-- Nothing else: no PC or Steam copy of the game, no extra downloads. Everything the patch adds (text,
-  pictures, fonts, videos, code) is inside `ChaosHeadNoah_PSP_EN.dat`, and the patchers use only what
-  Windows or Linux already includes.
+Just two things:
+
+1. **Your Japanese PSP ISO of CHAOS;HEAD NOAH** (ULJM05692), unmodified, as a `.iso` file
+   (1,416,232,960 bytes). If yours is a `.cso`, convert it back to `.iso` first.
+   **The file name doesn't matter.** The patcher recognises the game by its contents (size and
+   checksum), so `chn.iso`, `ULJM05692.iso` or anything else works.
+2. **This release** (`CHN-PSP-English-x.y.z.zip`).
+
+That's it. You do **not** need the PC or Steam version, the Committee of Zero patch, Python, or any
+other download. Everything the patch adds (the translated script, pictures, fonts, menus, the English
+videos and subtitles, the code changes) is packed into `ChaosHeadNoah_PSP_EN.dat`, which ships next to
+the patchers. The patchers only use tools Windows and Linux already have.
+
+You'll also want about 1.5 GB of free disk space for the new English ISO.
 
 The original ISO is never changed. The patcher writes a new file, `Chaos;Head Noah (English).iso`,
-next to it.
+in the same folder as your ISO, and checks at the end that the result is byte-for-byte correct.
 
 ## Windows
 
@@ -63,3 +71,9 @@ The full layout, in English, is under System → Help in the title menu.
   download the release again (the patch file may be damaged).
 - **PowerShell is blocked** on a locked-down Windows PC: run `Patch-Windows.bat` from a normal user account.
   It starts PowerShell with `-ExecutionPolicy Bypass` for this one script only.
+
+## Building it yourself (optional)
+
+You only need more if you want to rebuild the patch from source, change the translation, or work on
+the project. Then you need a Steam copy of CHAOS;HEAD NOAH with the Committee of Zero patch installed,
+Python and a few tools; see [BUILDING.md](BUILDING.md). Players never need any of that.
