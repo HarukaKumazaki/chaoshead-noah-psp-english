@@ -3,7 +3,7 @@
 Each page is 17 rows x 30 px, newest line at the top, rows tinted by speaker. For every page the
 rows are matched to a window of the scene's chat lines by text width (full-width 12 px,
 half-width 6 px), then each row is redrawn as "Speaker: text" in the row's own colour.
-Rows whose content is already ASCII (URLs) keep their original pixels after the new name.
+Every row uses one font size; long lines wrap inside the row so nothing runs past the visible window.
 
 Usage: chatimg.py ovroot
 """
@@ -38,6 +38,10 @@ def read_rows(img):
     tops = [y - 26 for y in sep_rows]
     if sep_rows and h - sep_rows[-1] > 12:
         tops.append(sep_rows[-1] + 4)
+    if not sep_rows:                    # a lone line with no separators (e.g. CHAT_01_021A5)
+        ink = [y for y in range(h) if any(max(px[x, y]) > 110 for x in range(0, w, 2))]
+        if ink:
+            tops.append(max(0, ink[-1] - 18))
     rows = []
     for top in tops:
         xs, cols = [], []
@@ -123,6 +127,32 @@ def match(rows, lines):
     return pairs, (sum(err) / len(err) if err else 999), len(R)
 
 
+VIS = 362          # page columns visible in the game's chat window (page drawn at screen x ~103)
+X0, SIZE = 6, 12   # left margin and the one font size every row uses
+
+
+def wrap(text, f, width):
+    """greedy word wrap; a word wider than the line (a URL) is broken after '/', '.' or '-'"""
+    out, line = [], ''
+    for word in text.split(' '):
+        cand = (line + ' ' + word).strip()
+        if f.getlength(cand) <= width:
+            line = cand
+            continue
+        if line:
+            out.append(line); line = ''
+        while f.getlength(word) > width:
+            cut = max(k + 1 for k in range(len(word)) if f.getlength(word[:k + 1]) <= width)
+            soft = [k + 1 for k in range(cut) if word[k] in '/.-_=?&']
+            if soft and soft[-1] > cut // 2:
+                cut = soft[-1]
+            out.append(word[:cut]); word = word[cut:]
+        line = word
+    if line:
+        out.append(line)
+    return out
+
+
 def render(orig, rows, lines, s):
     img = orig.convert('RGBA').copy()
     W, H = img.size
@@ -134,39 +164,26 @@ def render(orig, rows, lines, s):
             continue                                   # unmatched rows keep their original pixels
         jp, en = lines[s[k]]
         bg0 = (0, 0, 0, 0) if orig.convert('RGBA').getpixel((W - 2, top + 12 if top + 12 < H else H - 1))[3] == 0 else (0, 0, 0, 255)
-        band = Image.new('RGBA', (W, 24), bg0)     # one row, drawn then pasted (may be cut off)
+        band = Image.new('RGBA', (W, 25), bg0)     # one row, drawn then pasted (may be cut off)
         d = ImageDraw.Draw(band)
+        f = ImageFont.truetype(FONT, SIZE)
+        ink = dict(fill=col + (255,), anchor='ls', stroke_width=1, stroke_fill=(0, 0, 0, 255))
         if SYSMSG.search(jp):                                   # two-line system notice
-            f = ImageFont.truetype(FONT, 10)
-            for n, ln in enumerate(en.split('\n')[:2]):
-                d.text((4, 10 + n * 11), ln, font=f, fill=col + (255,), anchor='ls')
+            text_lines = [ln.strip() for ln in en.split('\n')[:2]]
         else:
             name_jp, body_jp = CHAT.match(jp).groups()
             m = CHAT.match(en)
             name_en = m.group(1) if m else NAMES.get(name_jp, name_jp)
             body_en = m.group(2).strip() if m else en
-            keep = None
-            if body_jp.isascii():                                # URLs: reuse original pixels
-                nx = jpw(name_jp + '：')
-                keep = img.crop((nx, top + 2, W, top + 26))
-            # URL rows keep the original '：' and address pixels after the English name
-            text = ('%s: %s' % (name_en, body_en)) if keep is None else name_en
-            size = 12
-            f = ImageFont.truetype(FONT, size)
-            while f.getlength(text) > W - 8 and size > 11:
-                size -= 1; f = ImageFont.truetype(FONT, size)
-            ink = dict(fill=col + (255,), anchor='ls', stroke_width=1, stroke_fill=(0, 0, 0, 255))
-            if f.getlength(text) <= W - 8 or keep is not None:
-                d.text((4, 17), text, font=f, **ink)
-            else:                                              # too long: two lines in the row
-                f = ImageFont.truetype(FONT, 10)
-                words, l1 = text.split(' '), ''
-                while words and f.getlength((l1 + ' ' + words[0]).strip()) <= W - 8:
-                    l1 = (l1 + ' ' + words.pop(0)).strip()
-                d.text((4, 10), l1, font=f, **ink)
-                d.text((4, 21), ' '.join(words), font=f, **ink)
-            if keep is not None:
-                band.paste(keep, (int(f.getlength(text)) + 4, 0))
+            text_lines = wrap('%s: %s' % (name_en, body_en), f, VIS - X0)
+        if len(text_lines) > 2:                                # rare: one size down rather than cut
+            f = ImageFont.truetype(FONT, SIZE - 1)
+            text_lines = wrap(' '.join(text_lines), f, VIS - X0)[:2]
+        if len(text_lines) == 1:
+            d.text((X0, 17), text_lines[0], font=f, **ink)
+        else:
+            d.text((X0, 10), text_lines[0], font=f, **ink)
+            d.text((X0, 22), text_lines[1], font=f, **ink)
         if SYSMSG.search(jp):                  # the two-line notice starts above the row: clear it all
             px = img.load()
             for y in range(max(0, top - 14), top + 2):      # erase the ink, keep grey separator lines
@@ -183,7 +200,10 @@ def render(orig, rows, lines, s):
             if grey < (W // 4) * 0.7:
                 for x in range(W):
                     px[x, y] = bg0
-        img.alpha_composite(band, (0, max(0, top + 2))) if top + 2 >= 0 else img.paste(band, (0, top + 2), band)
+        if top + 1 >= 0:
+            img.alpha_composite(band, (0, top + 1))
+        else:
+            img.paste(band, (0, top + 1), band)
     return img
 
 
@@ -200,24 +220,33 @@ PIN = {
     ('CHAT_01_003G2', 14): 'ナイトハルト：スク水には甘酸っぱい青春の思い出という補正がかかっているのだ',
     ('CHAT_01_003G2', 16): 'ナイトハルト：胸の名札なんて飾りです。偉い人にはそれが分からんのです',
     ('CHAT_08_158A1', 0): '将軍：fun＾10×int＾40＝Ir2',
+    ('CHAT_01_021A5', 0): 'グリム：グリーンンダヨーーーーーーーー！',
+    ('CHAT_01_021B5', 0): 'グリム：グリーンンダヨーーーーーーーー！',
     ('CHAT_06_113A1', 0): LEFT, ('CHAT_06_113A1', 5): JOIN,
     ('CHAT_06_113B1', 0): LEFT, ('CHAT_06_113B1', 8): JOIN,
 }
 
 
-def chat_frame(orig):
-    """chat window frame: relabel リロード / 入室 / 参加人数(1)"""
+def chat_frame(orig, users):
+    """chat window frame: relabel リロード / 入室 / 参加人数(n). The window background is striped by
+    row and the button face by row too, so each label is erased by copying an empty column across."""
     img = orig.convert('RGBA').copy()
+    px = img.load()
+
+    def erase(x0, y0, x1, y1, src_x):
+        for y in range(y0, y1):
+            c = px[src_x, y]
+            for x in range(x0, x1):
+                px[x, y] = c
+    erase(118, 12, 171, 30, 300)          # リロード
+    erase(111, 36, 166, 63, 110)          # 入室 (button face)
+    erase(172, 40, 268, 61, 300)          # 参加人数(n)
     d = ImageDraw.Draw(img)
-    f = ImageFont.truetype(FONT, 13)
-    bg = img.getpixel((70, 30))
-    d.rectangle((60, 6, 92, 34), fill=bg)                       # リロード label
-    d.text((91, 26), 'Reload', font=ImageFont.truetype(FONT, 11), fill=(235, 235, 235, 255), anchor='rs')
-    btn = img.getpixel((60, 30 + 26))
-    d.rectangle((58, 28, 88, 44), fill=btn)                     # 入室 button face
-    d.text((73, 41), 'Enter', font=ImageFont.truetype(FONT, 11), fill=(255, 255, 255, 255), anchor='ms')
-    d.rectangle((92, 26, 160, 46), fill=img.getpixel((150, 50)))
-    d.text((95, 41), 'Users (1)', font=f, fill=(235, 235, 235, 255), anchor='ls')
+    d.text((168, 25), 'Reload', font=ImageFont.truetype(FONT, 12), fill=(225, 225, 225, 255), anchor='rs')
+    d.text((138, 55), 'Enter', font=ImageFont.truetype(FONT, 14), fill=(255, 255, 255, 255), anchor='ms',
+           stroke_width=1, stroke_fill=(70, 88, 110, 255))
+    d.text((177, 56), 'Users (%d)' % users, font=ImageFont.truetype(FONT, 13), fill=(225, 225, 225, 255),
+           anchor='ls')
     return img
 
 
@@ -229,6 +258,8 @@ def main():
         for f in sorted(os.listdir(d)):
             m = re.fullmatch(r'CHAT_(\d\d)_(\d\d\d)[A-Z]\d+\.KLZ', f)
             m2 = re.fullmatch(r'CHAT_([A-Z])_(\d\d\d)[A-Z]\d+\.KLZ', f)
+            if m2 and m2.group(1) == 'S':       # Committee terminal pages: logimg.py
+                continue
             if m:
                 lines = scene_lines('sch%s_%s' % (m.group(1), m.group(2)))
             elif m2:
@@ -236,7 +267,7 @@ def main():
             elif re.fullmatch(r'CHAT_[ABC]\d\.KLZ', f):
                 orig, info = tim2.read(klz.decompress(open(os.path.join(d, f), 'rb').read()))
                 od = os.path.join(ov, arch, sub); os.makedirs(od, exist_ok=True)
-                open(os.path.join(od, f), 'wb').write(klz.compress(tim2.write(chat_frame(orig), info)))
+                open(os.path.join(od, f), 'wb').write(klz.compress(tim2.write(chat_frame(orig, int(f[6])), info)))
                 report.append((f, 'ok frame')); continue
             else:
                 continue

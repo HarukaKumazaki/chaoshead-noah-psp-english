@@ -4,21 +4,24 @@ Usage: makepatch.py ORIGINAL.iso ENGLISH.iso OUTDIR
 
 Rebuilding the AFS archives moves most files, so the patch describes the English ISO in 2048-byte
 sectors: sectors found anywhere in the original ISO are copied from it, only new data is shipped.
-Two files, readable by plain shell tools (dd / PowerShell) with nothing to install:
-  ChaosHeadNoah_PSP_EN.patch.bin   the new sectors, back to back
-  ChaosHeadNoah_PSP_EN.patch.txt   index:
+Everything goes into one self-contained file, ChaosHeadNoah_PSP_EN.dat, readable with plain shell
+tools (dd / PowerShell). Patching needs only this file and the Japanese ISO.
+
+  sectors 0-127 (256 KiB)  ASCII index, ended by a line "end", padded with newlines:
       size <bytes>                  size of both ISOs
       source_sha256 <hex>           original Japanese ISO
       result_sha256 <hex>           patched English ISO
       copy <iso sector> <sector in the original ISO> <count>
-      block <iso sector> <sector in .bin> <count>
-  Patchers start from a copy of the original, then apply the lines (copies read the original file).
+      block <iso sector> <data sector> <count>
+  sector 128 onwards       the new sectors, back to back (data sector 0 = file sector 128)
+Patchers start from a copy of the original, then apply the lines (copies read the original file).
 """
 import sys, os, hashlib
 
 SECTOR = 2048
 CHUNK = SECTOR * 8192
-NAME = 'ChaosHeadNoah_PSP_EN.patch'
+NAME = 'ChaosHeadNoah_PSP_EN.dat'
+HEADER = 128                    # index sectors at the start of the .dat
 
 
 def h(b):
@@ -49,9 +52,10 @@ def main():
         first.setdefault(d, i)
     print('matching...')
     os.makedirs(outdir, exist_ok=True)
-    ops = []            # [kind, dst start, src/bin start, count]
+    ops = []            # [kind, dst start, src/data start, count]
     sha_dst, nbin = hashlib.sha256(), 0
-    with open(os.path.join(outdir, NAME + '.bin'), 'wb') as binf:
+    part = os.path.join(outdir, NAME + '.part')
+    with open(part, 'wb') as binf:
         for i, s in enumerate(sectors(dst)):
             sha_dst.update(s)
             d = h(s)
@@ -68,10 +72,20 @@ def main():
                 binf.write(s); ops.append(['block', i, nbin, 1]); nbin += 1
     lines = ['size %d' % size, 'source_sha256 %s' % sha_src.hexdigest(), 'result_sha256 %s' % sha_dst.hexdigest()]
     lines += ['%s %d %d %d' % tuple(o) for o in ops]
-    with open(os.path.join(outdir, NAME + '.txt'), 'w', newline='\n') as f:
-        f.write('\n'.join(lines) + '\n')
+    index = ('\n'.join(lines + ['end']) + '\n').encode('ascii')
+    if len(index) > HEADER * SECTOR:
+        raise SystemExit('index does not fit the %d-sector header' % HEADER)
+    with open(os.path.join(outdir, NAME), 'wb') as out, open(part, 'rb') as binf:
+        out.write(index.ljust(HEADER * SECTOR, b'\n'))
+        while True:
+            b = binf.read(CHUNK)
+            if not b:
+                break
+            out.write(b)
+    os.remove(part)
     print('%d copy runs, %d new-data runs, %.1f MB new data -> %s' % (
-        sum(o[0] == 'copy' for o in ops), sum(o[0] == 'block' for o in ops), nbin * SECTOR / 1e6, outdir))
+        sum(o[0] == 'copy' for o in ops), sum(o[0] == 'block' for o in ops), nbin * SECTOR / 1e6,
+        os.path.join(outdir, NAME)))
 
 
 if __name__ == '__main__':

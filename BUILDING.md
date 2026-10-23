@@ -66,7 +66,8 @@ A full build takes a few minutes. Useful extras:
 python patcher\makepatch.py "..\Chaos;Head Noah (Japan).iso" "work\Chaos;Head Noah (English).iso" release
 ```
 
-This writes `release/ChaosHeadNoah_PSP_EN.patch.bin` and `.patch.txt`. Then
+This writes `release/ChaosHeadNoah_PSP_EN.dat` (index plus every new sector, so players need only the
+Japanese ISO and this file; the Steam copy is only needed for building). Then
 
 ```bat
 python patcher\package.py 1.0.1

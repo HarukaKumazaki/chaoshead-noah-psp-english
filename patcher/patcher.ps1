@@ -1,11 +1,12 @@
-# CHAOS;HEAD NOAH (PSP) English patcher for Windows (Windows PowerShell 5.1+, nothing to install).
+﻿# CHAOS;HEAD NOAH (PSP) English patcher for Windows (Windows PowerShell 5.1+, nothing to install).
 # Run through Patch-Windows.bat: double-click it and pick the ISO, or drag the ISO onto it.
+# Needs only the Japanese ISO and ChaosHeadNoah_PSP_EN.dat next to this script (no PC/Steam copy of the game).
 # The original ISO is never modified; the English ISO is written as a new file.
 param([string]$Iso, [string]$Out)
 $ErrorActionPreference = 'Stop'
-$Idx = Join-Path $PSScriptRoot 'ChaosHeadNoah_PSP_EN.patch.txt'
-$Bin = Join-Path $PSScriptRoot 'ChaosHeadNoah_PSP_EN.patch.bin'
+$Dat = Join-Path $PSScriptRoot 'ChaosHeadNoah_PSP_EN.dat'
 $Sector = 2048
+$Header = 128          # index sectors at the start of the .dat; data sector 0 follows them
 
 function Fail($msg) { Write-Host ''; Write-Host "ERROR: $msg" -ForegroundColor Red; exit 1 }
 
@@ -28,26 +29,30 @@ if (-not (Test-Path -LiteralPath $Iso)) { Fail "File not found: $Iso" }
 $Iso = (Resolve-Path -LiteralPath $Iso).Path
 if (-not $Out) { $Out = Join-Path (Split-Path $Iso) 'Chaos;Head Noah (English).iso' }
 if ($Out -eq $Iso) { Fail 'The output must be a different file from the original ISO.' }
-if (-not (Test-Path -LiteralPath $Idx) -or -not (Test-Path -LiteralPath $Bin)) {
-    Fail 'Keep this patcher next to ChaosHeadNoah_PSP_EN.patch.txt and ChaosHeadNoah_PSP_EN.patch.bin.'
-}
+if (-not (Test-Path -LiteralPath $Dat)) { Fail 'Keep this patcher next to ChaosHeadNoah_PSP_EN.dat.' }
 
 $info = @{}; $blocks = @()
-foreach ($line in [System.IO.File]::ReadAllLines($Idx)) {
+$fs = [System.IO.File]::OpenRead($Dat)
+$head = New-Object byte[] ($Header * $Sector)
+$null = $fs.Read($head, 0, $head.Length); $fs.Dispose()
+foreach ($line in [System.Text.Encoding]::ASCII.GetString($head).Split("`n")) {
+    if ($line -eq 'end') { break }
     $f = $line.Split(' ')
-    if ($f[0] -eq 'block' -or $f[0] -eq 'copy') { $blocks += , @([int64]$f[1], [int64]$f[2], [int64]$f[3], $f[0]) }
+    if ($f[0] -eq 'copy') { $blocks += , @([int64]$f[1], [int64]$f[2], [int64]$f[3], 'copy') }
+    elseif ($f[0] -eq 'block') { $blocks += , @([int64]$f[1], ([int64]$f[2] + $Header), [int64]$f[3], 'block') }
     elseif ($f.Count -eq 2) { $info[$f[0]] = $f[1] }
 }
 
 Write-Host 'Checking the original ISO (this takes a moment)...'
+if (-not $info['size']) { Fail 'ChaosHeadNoah_PSP_EN.dat is damaged. Download it again.' }
 if ((Get-Item -LiteralPath $Iso).Length -ne [int64]$info['size'] -or (Get-Sha256 $Iso) -ne $info['source_sha256']) {
     Fail "This is not the expected ISO: CHAOS;HEAD NOAH (Japan) ULJM05692, unmodified ($($info['size']) bytes)."
 }
 Write-Host 'Copying...'
 Copy-Item -LiteralPath $Iso -Destination $Out -Force
 Write-Host "Patching ($($blocks.Count) steps)..."
-# copy: sectors taken from the original ISO; block: new sectors from the .bin
-$bin = [System.IO.File]::OpenRead($Bin)
+# copy: sectors taken from the original ISO; block: new sectors from the .dat
+$bin = [System.IO.File]::OpenRead($Dat)
 $orig = [System.IO.File]::OpenRead($Iso)
 $dst = [System.IO.File]::Open($Out, 'Open', 'ReadWrite')
 try {

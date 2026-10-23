@@ -44,7 +44,7 @@ First-time setup: see BUILDING.md (`tools/setup.py`, EBOOT dump).
 - `musictr.py`, `cozlyrics.py`, `music_lyrics.py` — Music Gallery titles, credits and timed lyrics
 - `ppdbg.py` — drives a hidden PPSSPP via its debugger API for testing (no keyboard input)
 - `setup.py` — extracts the ISO, AFS archives and Steam/CoZ archives (build inputs)
-- `../patcher/makepatch.py` — release patch (changed sectors + index) for the batch / shell patchers
+- `../patcher/makepatch.py` — release patch: one self-contained `.dat` (index + new sectors) for the batch / shell patchers
 
 ## Hard constraints learned
 
@@ -86,6 +86,10 @@ Remaining / notes
 - [x] English text from steam/c0mes01, which CoZ's patchdef.json redirects mes01 to (msb.en_file)
 - [x] Characters missing from the font mapped (ë, CoZ's garbled hacker handle)
 - [x] L button (Tips for the highlighted words) verified in-game: opens the right CoZ entry
+- [x] Chat logs: one font size, long lines wrap inside the row to the visible ~360 px, links drawn as text,
+      window header (Reload / Enter / Users (n)) relabelled in place; lone-line pages handled
+- [x] ESO logs: one font size (12 px) for every log
+- [x] Mid-row click pauses removed (%K only at row ends): they stalled force-skip (R) until START
 - [ ] Final playtest on hardware
 - Ending credits come from CoZ's videos, i.e. the PC/Switch release credits (as in CoZ).
 

@@ -29,6 +29,7 @@ def movie_stills(ov):
         if not (os.path.exists(pmf) and os.path.exists(src)):
             continue
         png = os.path.join(ROOT, 'work', 'mv', mv + '_enlast.png')
+        os.makedirs(os.path.dirname(png), exist_ok=True)
         subprocess.run([os.path.join(ROOT, 'tools', 'ffmpeg', 'ffmpeg.exe'), '-v', 'error', '-y',
                         '-i', pmf, '-update', '1', png], check=True)
         img, info = tim2.read(klz.decompress(open(src, 'rb').read()))

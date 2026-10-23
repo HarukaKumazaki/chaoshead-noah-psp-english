@@ -181,6 +181,7 @@ def render_block(orig, meas, msgs, st):
 
 MMO_FG = (235, 235, 235, 255)
 SLOTS = 28                      # rows per 512px page: y = 9 + 18*i
+MMO_SIZE = 12
 
 
 def jp_rows(img):
@@ -206,10 +207,11 @@ def mmo_series(files, lines, d, ov):
             if all(slot(ia, j).any() and np.abs(slot(ia, j).astype(int) - slot(ib, SLOTS - k + j)).mean() < 1 for j in range(k)):
                 ov_n = k
         base.append(base[-1] + SLOTS - ov_n)
-    top = pages[-1][1]
-    used = base[-1] + len(jp_rows(top)) if len(pages) > 1 else len(jp_rows(top))
+    # every ESO log uses the same size (mixed sizes looked like thinner messages); the English may
+    # also fill the top page's empty slots, and only shrinks if even that is not enough
+    used = base[-1] + SLOTS
     msgs = [en for jp, en in lines][::-1]                       # newest first
-    for size in (14, 13, 12, 11, 10):
+    for size in (MMO_SIZE, 11, 10):
         font = ImageFont.truetype(FONT, size)
         rows = [r for en in msgs for r in wrap_en(en, font, 400)]
         if len(rows) <= (used or 10 ** 9):

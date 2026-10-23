@@ -202,10 +202,12 @@ TIPS_FALLBACK = {('sch01_003', 2): 'handle', ('sch01_003', 51): 'Lurking'}
 
 
 def add_pauses(out, n):
-    """insert n mid-line click pauses (%K) after sentence ends, spread evenly"""
+    """insert n mid-line click pauses (%K) after sentence ends, spread evenly. Only at sentence ends
+    that are also row ends (%K%N, as in the Japanese): a pause in the middle of a row stalls
+    force-skip (holding R) until START is pressed."""
     if n <= 0:
         return out
-    ends = [mo.end() for mo in re.finditer(r'[.!?…”’]+(?=(?:%N| )\S)', out)]
+    ends = [mo.end() for mo in re.finditer(r'[.!?…”’]+(?=%N\S)', out)]
     if not ends:
         return out
     pick = sorted(set(ends[min(len(ends) - 1, round((j + 1) * len(ends) / (n + 1)) - 1)] for j in range(n)))

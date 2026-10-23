@@ -5,7 +5,9 @@
 - The **Japanese PSP ISO of CHAOS;HEAD NOAH** (ULJM05692), unmodified, as a `.iso` file
   (1,416,232,960 bytes). If yours is a `.cso`, convert it back to `.iso` first.
 - About 1.5 GB of free disk space for the new English ISO.
-- Nothing else. The patchers use only what Windows or Linux already includes.
+- Nothing else: no PC or Steam copy of the game, no extra downloads. Everything the patch adds (text,
+  pictures, fonts, videos, code) is inside `ChaosHeadNoah_PSP_EN.dat`, and the patchers use only what
+  Windows or Linux already includes.
 
 The original ISO is never changed. The patcher writes a new file, `Chaos;Head Noah (English).iso`,
 next to it.
