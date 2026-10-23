@@ -1,22 +1,20 @@
 # CHAOS;HEAD NOAH — English patch for the PSP
 
-**CHAOS;HEAD NOAH** came out on the PSP in 2010, but only in Japanese. English speakers finally got the game
-years later on PC and Switch, and on Steam there's Committee of Zero's excellent fan translation. That
-version never made it back to the PSP.
+**CHAOS;HEAD NOAH** came out on the PSP in 2010, but only in Japanese. Since no one ever finished porting it i did it.
 
-This patch brings it home. It takes Committee of Zero's English translation and puts it into the original
+This patch takes Committee of Zero's English translation and puts it into the original
 Japanese PSP release, as close to 1:1 as the PSP allows: the same words, the same jokes, the same Tips,
 on the handheld the game was made for.
 
 > **Translation source:** all of the English in this patch comes from
 > [Committee of Zero](https://sonome.dareno.me/)'s CHAOS;HEAD NOAH patch (version 1.1.3, for the Steam
-> release). This project only ports their work to the PSP; the translation is theirs.
+> release). This project only ports their work to the PSP; the some of the translation is theirs.
 
 > **What you need:** your own copy of the Japanese PSP game (ULJM05692) as an `.iso`. No game files are
 > included here; the patcher only works on the original, unmodified ISO.
 
 **[Download the latest release](https://github.com/HarukaKumazaki/chaoshead-noah-psp-english/releases/latest)**
-and see [INSTALL.md](INSTALL.md) for the two-minute setup.
+and see [INSTALL.md](INSTALL.md) for the setup.
 
 ---
 
@@ -39,13 +37,13 @@ running into Japanese text.
 | Music Gallery (46 songs) | titles, credits and lyrics | CoZ's song subtitles; a few extra verses translated here |
 | Extras (Clear List, CG Gallery, Music Gallery, Tips) | complete | |
 
-The extras work exactly like the original: they show up as `???` on a new save and unlock as you clear
+The extras menu on the psp is shown from the beginning i left it that way, exactly like the original: they show up as `???` on a new save and unlock as you clear
 the game.
 
 ### What's not from Committee of Zero
 
 A handful of things only exist in the PSP version, so CoZ never had to translate them. I translated those
-myself, sticking to CoZ's wording and terms:
+myself with the help of ai and online resources.
 
 - around 8 short PSP-only lines (mostly shouts and sighs), plus 5 lines CoZ's own patch leaves in Japanese
 - lyrics for song verses that CoZ never subtitled
@@ -82,12 +80,12 @@ Everything else (controls, menus, how the extras unlock) is left exactly as it w
 
 ## Playing
 
-Works in **PPSSPP** and on a real **PSP** or **PS Vita** with custom firmware (ARK-4, PRO/LME, Adrenaline).
+Works in **PPSSPP** and on a real **PSP** or **PS Vita** (Adrenaline)
 It's been tested thoroughly in PPSSPP. Testing on real hardware is still in progress, so if you run into
 anything odd, please [open an issue](https://github.com/HarukaKumazaki/chaoshead-noah-psp-english/issues)
 with a screenshot or photo.
 
-## For tinkerers
+## 
 
 The whole pipeline that builds the English ISO is in this repo: the script injector, font builder, image
 and movie tools, the code patches for the game, and the patchers. [BUILDING.md](BUILDING.md) explains how
@@ -102,7 +100,7 @@ to rebuild everything yourself from the Japanese ISO and a Steam copy of the gam
 
 ## Thank you, Committee of Zero
 
-None of this would exist without **[Committee of Zero](https://sonome.dareno.me/)**. They translated
+None of this would exist without **[Committee of Zero](https://sonome.dareno.me/)**. They improved
 CHAOS;HEAD NOAH, edited it, redrew its artwork in English, and subtitled and typeset every song and video.
 This patch is simply their work, carried over to the PSP. Every line of story, every Tip, every translated
 picture and subtitle here is theirs.
@@ -113,7 +111,9 @@ If you enjoy this patch, thank them, and go play their other patches for the Sci
 
 - **Translation, editing, artwork and subtitles:** Committee of Zero (CHAOS;HEAD NOAH patch 1.1.3)
 - **Original game:** 5pb. and Nitroplus; PC release by MAGES. / Spike Chunsoft
-- **PSP port:** HarukaKumazaki (this repo)
+- **PSP port:** HarukaKumazaki
 
 This is a free, non-commercial fan project. It isn't affiliated with or endorsed by the rights holders or
 by Committee of Zero. If you enjoy it, please support the official releases.
+
+DISCLAMER : Ai was used to create the repo, patcher, explainations and to reverse some of the Engine for the Game.
