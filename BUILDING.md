@@ -17,7 +17,7 @@ This page is for rebuilding the patch yourself or changing it.
 Put the repository folder next to the Japanese ISO:
 
 ```
-Downloads/
+ChaosHead Noah PSP English/
   Chaos;Head Noah (Japan).iso
   CHN_PSP_EN/          <- this repository
 ```
