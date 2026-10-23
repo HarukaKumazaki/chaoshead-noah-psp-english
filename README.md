@@ -3,8 +3,7 @@
 **CHAOS;HEAD NOAH** came out on the PSP in 2010, but only in Japanese. Since no one ever finished porting it i did it.
 
 This patch takes Committee of Zero's English translation and puts it into the original
-Japanese PSP release, as close to 1:1 as the PSP allows: the same words, the same jokes, the same Tips,
-on the handheld the game was made for.
+Japanese PSP release, as close to 1:1 as the PSP allows: the same words, the same jokes, the same Tips.
 
 > **Translation source:** all of the English in this patch comes from
 > [Committee of Zero](https://sonome.dareno.me/)'s CHAOS;HEAD NOAH patch (version 1.1.3, for the Steam
