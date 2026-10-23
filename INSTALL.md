@@ -5,7 +5,8 @@
 Just two things:
 
 1. **Your Japanese PSP ISO of CHAOS;HEAD NOAH** (ULJM05692), unmodified, as a `.iso` file
-   (1,416,232,960 bytes). If yours is a `.cso`, convert it back to `.iso` first.
+   (1,416,232,960 bytes). Both the UMD dump and the PSN (PlayStation Store) dump work.
+   If yours is a `.cso`, convert it back to `.iso` first.
    **The file name doesn't matter.** The patcher recognises the game by its contents (size and
    checksum), so `chn.iso`, `ULJM05692.iso` or anything else works.
 2. **This release** (`CHN-PSP-English-x.y.z.zip`).
@@ -18,7 +19,21 @@ the patchers. The patchers only use tools Windows and Linux already have.
 You'll also want about 1.5 GB of free disk space for the new English ISO.
 
 The original ISO is never changed. The patcher writes a new file, `Chaos;Head Noah (English).iso`,
-in the same folder as your ISO, and checks at the end that the result is byte-for-byte correct.
+in the same folder as your ISO. It never overwrites anything: if that file already exists (say you
+patch a second ISO into the same folder), the new one is called `Chaos;Head Noah (English) (2).iso`,
+then `(3)`, and so on.
+
+At the end the patcher checks its work. Every file it patched is checked at its place in the ISO
+and listed with `[OK]`, then the whole ISO is compared byte for byte with the expected English ISO.
+You'll see something like:
+
+```
+  [OK]   PSP_GAME/SYSDIR/EBOOT.BIN (1238480 bytes)
+  [OK]   PSP_GAME/USRDIR/DATA0.AFS (780951552 bytes)
+  ...
+Check passed: 100% patched.
+  24 of 24 patched files verified, each in its correct place
+```
 
 ## Windows
 
@@ -41,7 +56,7 @@ If Windows SmartScreen warns about the batch file, choose *More info → Run any
    An optional second argument sets the output file name.
 3. Wait for `Done`.
 
-The script needs only `sh`, `dd`, `cp`, `awk` and `sha256sum` (or `shasum` on macOS), which every system has.
+The script needs only `sh`, `dd`, `cp`, `head`, `awk` and `sha256sum` (or `shasum` on macOS), which every system has.
 
 ## Playing
 
@@ -67,7 +82,11 @@ The full layout, in English, is under System → Help in the title menu.
 
 - **"This is not the expected ISO"**: the ISO is a different version, compressed, or already modified.
   You need the original Japanese release (ULJM05692) as a plain `.iso`.
-- **"Verification failed"**: delete the output file and run the patcher again. If it keeps failing,
+- **"This ISO is already the English patch"**: you picked an English ISO made earlier. Pick your
+  original Japanese ISO instead.
+- **"Cannot write ..."**: the output file is open somewhere (an emulator, for example). Close it, or
+  give a different output name.
+- **"Verification failed"** or a `[FAIL]` line: delete the output file and run the patcher again. If it keeps failing,
   download the release again (the patch file may be damaged).
 - **PowerShell is blocked** on a locked-down Windows PC: run `Patch-Windows.bat` from a normal user account.
   It starts PowerShell with `-ExecutionPolicy Bypass` for this one script only.

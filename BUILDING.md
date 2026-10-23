@@ -67,17 +67,20 @@ A full build takes a few minutes. Useful extras:
 ## 5. Make the release patch
 
 ```bat
-python patcher\makepatch.py "..\Chaos;Head Noah (Japan).iso" "work\Chaos;Head Noah (English).iso" release
+python patcher\makepatch.py "..\Chaos;Head Noah (Japan).iso" "work\Chaos;Head Noah (English).iso" release "..\Chaos;Head Noah (Japan) (PSP) (PSN).iso"
 ```
 
 This writes `release/ChaosHeadNoah_PSP_EN.dat` (index plus every new sector, so players need only the
-Japanese ISO and this file; the Steam copy is only needed for building). Then
+Japanese ISO and this file; the Steam copy is only needed for building). The index also lists every
+file the patch writes with its checksum, which the patchers check one by one after patching.
+Extra arguments are other dumps of the Japanese game (the PSN release): each is accepted only when
+the patch never reads a sector where it differs and its patched files come out identical. Then
 
 ```bat
-python patcher\package.py 1.0.1
+python patcher\package.py 1.0.3
 ```
 
-puts the patchers, the patch and `README.txt` (from INSTALL.md) in `dist/CHN-PSP-English-1.0.1.zip`.
+puts the patchers, the patch and `README.txt` (from INSTALL.md) in `dist/CHN-PSP-English-1.0.3.zip`.
 
 ## Testing
 
